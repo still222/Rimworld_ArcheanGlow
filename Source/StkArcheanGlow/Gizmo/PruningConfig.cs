@@ -10,7 +10,7 @@ namespace StkArcheanGlow.Gizmo;
 [StaticConstructorOnStartup]
 public class PruningConfig : Verse.Gizmo
 {
-	private CompPlantGlowerPruning connection;
+	private readonly CompPlantGlowerPruning connection;
 
 	private float selectedStrengthTarget = -1f;
 
@@ -26,7 +26,7 @@ public class PruningConfig : Verse.Gizmo
 
 	private static readonly Texture2D StrengthTargetTex = SolidColorMaterials.NewSolidColorTexture(ColorLibrary.DarkOrange);
 
-	private float ExtraHeight = Text.LineHeight * 1.5f;
+	private readonly float ExtraHeight = Text.LineHeight * 1.5f;
 
 	private float DesiredConnectionStrength
 	{
@@ -50,7 +50,7 @@ public class PruningConfig : Verse.Gizmo
 
 	public override float GetWidth(float maxWidth)
 	{
-		return 212f;
+		return Width;
 	}
 
 	public override GizmoResult GizmoOnGUI(Vector2 topLeft, float maxWidth, GizmoRenderParms parms)
@@ -59,7 +59,7 @@ public class PruningConfig : Verse.Gizmo
 		{
 			return new GizmoResult(GizmoState.Clear);
 		}
-		Rect rect = new Rect(topLeft.x, topLeft.y - ExtraHeight, GetWidth(maxWidth), OverrideHeight);
+		Rect rect = new(topLeft.x, topLeft.y - ExtraHeight, GetWidth(maxWidth), OverrideHeight);
 		Rect rect2 = rect.ContractedBy(6f);
 		Widgets.DrawWindowBackground(rect);
 		Rect rect3 = rect2;
@@ -89,7 +89,7 @@ public class PruningConfig : Verse.Gizmo
 
 	private void DrawThreshold(Rect rect, float percent, float strValue)
 	{
-		Rect position = new Rect
+		Rect position = new()
 		{
 			x = rect.x + 3f + (rect.width - 8f) * percent,
 			y = rect.y + rect.height - 9f,
@@ -112,7 +112,7 @@ public class PruningConfig : Verse.Gizmo
 		GUI.DrawTexture(new Rect(rect.x + 3f + num, rect.y, 2f, rect.height), StrengthTargetTex);
 		float num2 = UIScaling.AdjustCoordToUIScalingFloor(rect.x + 2f + num);
 		float xMax = UIScaling.AdjustCoordToUIScalingCeil(num2 + 4f);
-		Rect obj = new Rect
+		Rect obj = new()
 		{
 			y = rect.y - 3f,
 			height = 5f,

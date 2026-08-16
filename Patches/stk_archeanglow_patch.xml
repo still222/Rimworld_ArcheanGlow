@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Patch>
+  <Operation Class="PatchOperationAdd">
+    <xpath>/Defs/ThingDef[defName="Plant_TreeArchean"]/comps</xpath>
+    <value>
+      <li Class="StkArcheanGlow.CompProperties.PlantGlowerPruning">
+        <overlightRadius>7.0</overlightRadius>
+        <glowRadius>14</glowRadius>
+        <glowColor>(370,370,370,0)</glowColor>
+      </li>
+    </value>
+  </Operation>
+  <Operation Class="PatchOperationAdd">
+    <xpath>/Defs/TileMutatorDef[defName="ArcheanTrees"]/biomeWhitelist</xpath>
+    <value>
+      <li>Glowforest</li>
+    </value>
+  </Operation>
+</Patch>

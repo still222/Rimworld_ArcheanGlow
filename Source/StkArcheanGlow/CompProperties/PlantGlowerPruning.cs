@@ -7,26 +7,23 @@ using Verse;
 namespace StkArcheanGlow.CompProperties;
 
 [StaticConstructorOnStartup]
-public class CompPlantGlowerPruning : ThingComp
+public class CompPlantGlowerPruning : CompGlower
 {
-	private Pawn connectedPawn;
+	private readonly Pawn connectedPawn;
 	public Pawn ConnectedPawn => connectedPawn;
 	private int nextUntornTick = -1;
 	private int spawnTick = -1;
 	private float connectionStrength;
 	private int lastPrunedTick;
 	private float desiredConnectionStrength = 0.5f;
-
-
 	private Effecter leafEffecter;
 	private PruningConfig pruningGizmo;
 	private const int ConnectionTornDurationTicks = 1800000;
 	private const int CheckPodSpawnInterval = 300;
-	public const int DryadsToCreatePod = 3;
-	private float TimeBetweenAutoPruning = 10000f;
+	private readonly float TimeBetweenAutoPruning = 10000f;
 	private const float PruningConnectionStrengthDithering = 0.03f;
 	private const float PruningSpeedFactor_DisabledSkill = 0.75f;
-	public PlantGlowerPruning Props => (PlantGlowerPruning)props;
+	public new PlantGlowerPruning Props => (PlantGlowerPruning)props;
 	public int UntornInDurationTicks => nextUntornTick - Find.TickManager.TicksGame;
 	public float ConnectionStrength
 	{
@@ -64,7 +61,7 @@ public class CompPlantGlowerPruning : ThingComp
 		get
 		{
 			float connectionStrengthGainPerHourPruningBase = Props.connectionStrengthGainPerHourPruningBase;
-			connectionStrengthGainPerHourPruningBase = ((!StatDefOf.PruningSpeed.Worker.IsDisabledFor(ConnectedPawn)) ? (connectionStrengthGainPerHourPruningBase * ConnectedPawn.GetStatValue(StatDefOf.PruningSpeed)) : (connectionStrengthGainPerHourPruningBase * 0.75f));
+			connectionStrengthGainPerHourPruningBase = ((!StatDefOf.PruningSpeed.Worker.IsDisabledFor(ConnectedPawn)) ? (connectionStrengthGainPerHourPruningBase * ConnectedPawn.GetStatValue(StatDefOf.PruningSpeed)) : (connectionStrengthGainPerHourPruningBase * PruningSpeedFactor_DisabledSkill));
 			if (Props.connectionStrengthGainPerPlantSkill != null)
 			{
 				connectionStrengthGainPerHourPruningBase *= Props.connectionStrengthGainPerPlantSkill.Evaluate(ConnectedPawn.skills.GetSkill(SkillDefOf.Plants).Level);
@@ -93,7 +90,7 @@ public class CompPlantGlowerPruning : ThingComp
 			leafEffecter.Trigger(parent, parent);
 		}
 		leafEffecter?.EffectTick(parent, parent);
-		if (!parent.IsHashIntervalTick(300))
+		if (!parent.IsHashIntervalTick(CheckPodSpawnInterval))
 		{
 			return;
 		}
@@ -103,7 +100,7 @@ public class CompPlantGlowerPruning : ThingComp
 	public void Prune(int delta)
 	{
 		lastPrunedTick = Find.TickManager.TicksGame;
-		ConnectionStrength += ConnectionStrengthGainPerHourOfPruning * (float)delta / 2500f;
+		ConnectionStrength += ConnectionStrengthGainPerHourOfPruning * delta / 2500f;
 	}
 
 	public bool ShouldBePrunedNow(bool forced)
@@ -114,11 +111,11 @@ public class CompPlantGlowerPruning : ThingComp
 		}
 		if (!forced)
 		{
-			if (ConnectionStrength >= desiredConnectionStrength - 0.03f)
+			if (ConnectionStrength >= desiredConnectionStrength - PruningConnectionStrengthDithering)
 			{
 				return false;
 			}
-			if ((float)Find.TickManager.TicksGame < (float)lastPrunedTick + TimeBetweenAutoPruning)
+			if (Find.TickManager.TicksGame < lastPrunedTick + TimeBetweenAutoPruning)
 			{
 				return false;
 			}
@@ -129,26 +126,27 @@ public class CompPlantGlowerPruning : ThingComp
 	public override IEnumerable<Verse.Gizmo> CompGetGizmosExtra()
 	{
 		{
-			if (pruningGizmo == null)
-			{
-				pruningGizmo = new PruningConfig(this);
-			}
+			pruningGizmo ??= new PruningConfig(this);
 			yield return pruningGizmo;
 		}
 		if (DebugSettings.ShowDevGizmos)
 		{
-			Command_Action command_Action3 = new Command_Action();
-			command_Action3.defaultLabel = "DEV: Connection strength -10%";
-			command_Action3.action = delegate
+			Command_Action command_Action3 = new()
 			{
-				ConnectionStrength -= 0.1f;
+				defaultLabel = "DEV: Connection strength -10%",
+				action = delegate
+					{
+						ConnectionStrength -= 0.1f;
+					}
 			};
 			yield return command_Action3;
-			Command_Action command_Action4 = new Command_Action();
-			command_Action4.defaultLabel = "DEV: Connection strength +10%";
-			command_Action4.action = delegate
+			Command_Action command_Action4 = new()
 			{
-				ConnectionStrength += 0.1f;
+				defaultLabel = "DEV: Connection strength +10%",
+				action = delegate
+					{
+						ConnectionStrength += 0.1f;
+					}
 			};
 			yield return command_Action4;
 		}
@@ -181,7 +179,7 @@ public class CompPlantGlowerPruning : ThingComp
 
 	public override IEnumerable<StatDrawEntry> SpecialDisplayStats()
 	{
-		yield return new StatDrawEntry(StatCategoryDefOf.BasicsNonPawn, "ConnectedPawn".Translate(), (ConnectedPawn != null) ? ConnectedPawn.NameFullColored : "Nobody".Translate(), "ConnectedPawnDesc".Translate(1800000.ToStringTicksToPeriod().Named("DURATION"), parent.Named("TREE")), 6010, null, Gen.YieldSingle(new Dialog_InfoCard.Hyperlink(ConnectedPawn)));
+		yield return new StatDrawEntry(StatCategoryDefOf.BasicsNonPawn, "ConnectedPawn".Translate(), (ConnectedPawn != null) ? ConnectedPawn.NameFullColored : "Nobody".Translate(), "ConnectedPawnDesc".Translate(ConnectionTornDurationTicks.ToStringTicksToPeriod().Named("DURATION"), parent.Named("TREE")), 6010, null, Gen.YieldSingle(new Dialog_InfoCard.Hyperlink(ConnectedPawn)));
 	}
 
 	public float PruningHoursToMaintain(float desired)
@@ -198,6 +196,7 @@ public class CompPlantGlowerPruning : ThingComp
 		Scribe_Values.Look(ref desiredConnectionStrength, "desiredConnectionStrength", 0.5f);
 		Scribe_Values.Look(ref connectionStrength, "connectionStrength", 0f);
 	}
+
 }
 
 public class PlantGlowerPruning : CompProperties_Glower
