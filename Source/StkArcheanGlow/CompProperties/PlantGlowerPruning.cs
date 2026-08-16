@@ -11,7 +11,6 @@ public class CompPlantGlowerPruning : CompGlower
 {
 	private readonly Pawn connectedPawn;
 	public Pawn ConnectedPawn => connectedPawn;
-	private int nextUntornTick = -1;
 	private int spawnTick = -1;
 	private float connectionStrength;
 	private int lastPrunedTick;
@@ -24,7 +23,6 @@ public class CompPlantGlowerPruning : CompGlower
 	private const float PruningConnectionStrengthDithering = 0.03f;
 	private const float PruningSpeedFactor_DisabledSkill = 0.75f;
 	public new PlantGlowerPruning Props => (PlantGlowerPruning)props;
-	public int UntornInDurationTicks => nextUntornTick - Find.TickManager.TicksGame;
 	public float ConnectionStrength
 	{
 		get
@@ -190,7 +188,6 @@ public class CompPlantGlowerPruning : CompGlower
 
 	public override void PostExposeData()
 	{
-		Scribe_Values.Look(ref nextUntornTick, "nextUntornTick", -1);
 		Scribe_Values.Look(ref spawnTick, "spawnTick", -1);
 		Scribe_Values.Look(ref lastPrunedTick, "lastPrunedTick", 0);
 		Scribe_Values.Look(ref desiredConnectionStrength, "desiredConnectionStrength", 0.5f);
